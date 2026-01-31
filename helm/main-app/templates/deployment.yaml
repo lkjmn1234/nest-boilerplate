@@ -1,38 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: microservice
+  name: main-app
   labels:
-    app: microservice
+    app: main-app
 spec:
-  replicas: {{ .Values.microservice.replicaCount | default 2 }}
+  replicas: {{ .Values.mainApp.replicaCount | default 2 }}
   selector:
     matchLabels:
-      app: microservice
+      app: main-app
   template:
     metadata:
       labels:
-        app: microservice
+        app: main-app
     spec:
       containers:
-      - name: nestjs-microservice
-        image: {{ .Values.microservice.image }}
+      - name: nestjs-main-app
+        image: "{{ .Values.mainApp.image.repository }}:{{ .Values.mainApp.image.tag }}"
         ports:
-        - containerPort: 3001
+        - containerPort: 3000
         envFrom:
           - secretRef:
-              name: microservice-env-secret
-        # Liveness
+              name: main-app-env-secret
+        # Liveness: Is the process alive? (If fails, K8s restarts it)
         livenessProbe:
           httpGet:
-            path: /greeting
-            port: 3001
+            path: /hello
+            port: 3000
           initialDelaySeconds: 15
           periodSeconds: 20
-        # Readiness
+        # Readiness: Is the app ready for traffic? (If fails, K8s stops sending traffic)
         readinessProbe:
           httpGet:
-            path: /greeting
-            port: 3001
+            path: /hello
+            port: 3000
           initialDelaySeconds: 5
           periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3

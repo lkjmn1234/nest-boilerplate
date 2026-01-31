@@ -3,7 +3,10 @@ namespace: default
 
 mainApp:
   replicaCount: 2
-  image: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo:main" # Injected by GitHub Actions
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    tag: "latest" # Default tag
+    pullPolicy: IfNotPresent
   awsSecretName: "" # Overridden in env values
 
 # ClusterSecretStore name installed in your EKS cluster
