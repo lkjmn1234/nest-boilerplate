@@ -1,0 +1,14 @@
+namespace: prod
+
+microservice:
+  replicaCount: 3
+  awsSecretName: "prod/nestjs/apps"
+
+# Production-grade resource limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

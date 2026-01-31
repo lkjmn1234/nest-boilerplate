@@ -1,0 +1,14 @@
+namespace: prod
+
+mainApp:
+  replicaCount: 3  # High availability
+  awsSecretName: "prod/nestjs/apps"
+
+# Production-grade resource limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

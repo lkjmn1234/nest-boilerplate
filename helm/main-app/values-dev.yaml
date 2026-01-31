@@ -1,0 +1,14 @@
+namespace: dev
+
+mainApp:
+  replicaCount: 1  # Save costs in dev
+  awsSecretName: "dev/nestjs/apps"
+
+# Example of dev-specific resource limits
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

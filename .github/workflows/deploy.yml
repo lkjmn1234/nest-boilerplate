@@ -1,0 +1,79 @@
+name: CI/CD Multi-Environment
+
+on:
+  push:
+    branches:
+      - master
+      - development
+
+env:
+  AWS_REGION: ap-southeast-1
+  EKS_CLUSTER_NAME: my-private-cluster-sg
+  # ECR Repositories
+  APP_REPO: my-app-repo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Environment Context
+        id: set-env
+        run: |
+          if [[ "${{ github.ref_name }}" == "master" ]]; then
+            echo "NAMESPACE=prod" >> $GITHUB_OUTPUT
+            echo "VALUE_FILE=values-prod.yaml" >> $GITHUB_OUTPUT
+          else
+            echo "NAMESPACE=dev" >> $GITHUB_OUTPUT
+            echo "VALUE_FILE=values-dev.yaml" >> $GITHUB_OUTPUT
+          fi
+
+      # Build and Push App 1
+      - name: Build and Push App 1
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./app1
+          docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
+          echo "APP1_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+
+      # Build and Push App 2
+      - name: Build and Push App 2
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./app2
+          docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
+          echo "APP2_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+
+      # Deploy to EKS
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Helm Deploy Apps
+        run: |
+          # Deploy App 1
+          helm upgrade --install app1 ./charts/app1 \
+            --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
+            --create-namespace \
+            -f ./charts/app1/${{ steps.set-env.outputs.VALUE_FILE }} \
+            --set image.tag=${{ github.sha }}
+
+          # Deploy App 2
+          helm upgrade --install app2 ./charts/app2 \
+            --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
+            --create-namespace \
+            -f ./charts/app2/${{ steps.set-env.outputs.VALUE_FILE }} \
+            --set image.tag=${{ github.sha }}

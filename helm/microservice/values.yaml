@@ -1,0 +1,10 @@
+# Shared configuration
+namespace: default
+
+microservice:
+  replicaCount: 2
+  image: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo:microservice" # Injected by GitHub Actions
+  awsSecretName: "" # Overridden in env values
+
+# ClusterSecretStore name installed in your EKS cluster
+secretStoreName: aws-secretsmanager

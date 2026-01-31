@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice
+  labels:
+    app: microservice
+spec:
+  replicas: {{ .Values.microservice.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app: microservice
+  template:
+    metadata:
+      labels:
+        app: microservice
+    spec:
+      containers:
+      - name: nestjs-microservice
+        image: {{ .Values.microservice.image }}
+        ports:
+        - containerPort: 3001
+        envFrom:
+          - secretRef:
+              name: microservice-env-secret
+        # Liveness
+        livenessProbe:
+          httpGet:
+            path: /greeting
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        # Readiness
+        readinessProbe:
+          httpGet:
+            path: /greeting
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 10
