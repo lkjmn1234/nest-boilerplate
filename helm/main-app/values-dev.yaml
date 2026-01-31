@@ -3,7 +3,7 @@ namespace: dev
 mainApp:
   replicaCount: 1
   image:
-    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    repository: "135384223494.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
     tag: "latest" # Default tag
     pullPolicy: IfNotPresent
   awsSecretName: "my-app/db-credentials" # Overridden in env values
