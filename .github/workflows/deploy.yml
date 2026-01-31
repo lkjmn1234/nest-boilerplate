@@ -9,7 +9,7 @@ on:
 permissions:
   id-token: write   # This is required for requesting the JWT
   contents: read    # This is required for actions/checkout
-  
+
 env:
   AWS_REGION: ap-southeast-1
   EKS_CLUSTER_NAME: my-private-cluster-sg
@@ -44,23 +44,23 @@ jobs:
             echo "VALUE_FILE=values-dev.yaml" >> $GITHUB_OUTPUT
           fi
 
-      # Build and Push App 1
-      - name: Build and Push App 1
+      # Build and Push main app
+      - name: Build and Push main app
         run: |
           IMAGE_TAG=${{ github.sha }}
           REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./app1
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./main-app
           docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
-          echo "APP1_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "MAIN_APP_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
 
-      # Build and Push App 2
-      - name: Build and Push App 2
+      # Build and Push microservice
+      - name: Build and Push microservice
         run: |
           IMAGE_TAG=${{ github.sha }}
           REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./app2
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./microservice
           docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
-          echo "APP2_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "MICROSERVICE_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
 
       # Deploy to EKS
       - name: Update Kubeconfig
@@ -68,16 +68,16 @@ jobs:
 
       - name: Helm Deploy Apps
         run: |
-          # Deploy App 1
-          helm upgrade --install app1 ./charts/app1 \
+          # Deploy main app
+          helm upgrade --install main-app ./helm/main-app \
             --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
             --create-namespace \
-            -f ./charts/app1/${{ steps.set-env.outputs.VALUE_FILE }} \
+            -f ./helm/main-app/${{ steps.set-env.outputs.VALUE_FILE }} \
             --set image.tag=${{ github.sha }}
 
-          # Deploy App 2
-          helm upgrade --install app2 ./charts/app2 \
+          # Deploy microservice
+          helm upgrade --install microservice ./helm/microservice \
             --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
             --create-namespace \
-            -f ./charts/app2/${{ steps.set-env.outputs.VALUE_FILE }} \
+            -f ./helm/microservice/${{ steps.set-env.outputs.VALUE_FILE }} \
             --set image.tag=${{ github.sha }}
