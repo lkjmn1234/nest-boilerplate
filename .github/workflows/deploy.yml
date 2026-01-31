@@ -73,11 +73,11 @@ jobs:
             --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
             --create-namespace \
             -f ./helm/main-app/${{ steps.set-env.outputs.VALUE_FILE }} \
-            --set image.tag=${{ github.sha }}
+            --set mainApp.image.tag=${{ github.sha }}
 
           # Deploy microservice
           helm upgrade --install microservice ./helm/microservice \
             --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
             --create-namespace \
             -f ./helm/microservice/${{ steps.set-env.outputs.VALUE_FILE }} \
-            --set image.tag=${{ github.sha }}
+            --set microservice.image.tag=${{ github.sha }}
