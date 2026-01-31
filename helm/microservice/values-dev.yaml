@@ -3,7 +3,7 @@ namespace: dev
 microservice:
   replicaCount: 1
   image:
-    repository: "135384223494.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    repository: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo"
     tag: "latest"
     pullPolicy: IfNotPresent
   awsSecretName: "my-app/db-credentials"
