@@ -1,0 +1,21 @@
+namespace: dev
+
+mainApp:
+  replicaCount: 1
+  image:
+    repository: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo"
+    tag: "latest" # Default tag
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials" # Overridden in env values
+
+# ClusterSecretStore name installed in your EKS cluster
+secretStoreName: aws-secretsmanager
+
+# Example of dev-specific resource limits
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

@@ -1,0 +1,18 @@
+namespace: dev
+
+microservice:
+  replicaCount: 1
+  image:
+    repository: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials"
+
+# Example of dev-specific resource limits
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

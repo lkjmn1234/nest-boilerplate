@@ -1,0 +1,83 @@
+name: CI/CD Multi-Environment
+
+on:
+  push:
+    branches:
+      - master
+      - development
+# Required for OIDC authentication
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+env:
+  AWS_REGION: ap-southeast-1
+  EKS_CLUSTER_NAME: my-private-cluster-sg
+  # ECR Repositories
+  APP_REPO: my-app-repo
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Environment Context
+        id: set-env
+        run: |
+          if [[ "${{ github.ref_name }}" == "master" ]]; then
+            echo "NAMESPACE=staging" >> $GITHUB_OUTPUT
+            echo "VALUE_FILE=values-staging.yaml" >> $GITHUB_OUTPUT
+          else
+            echo "NAMESPACE=dev" >> $GITHUB_OUTPUT
+            echo "VALUE_FILE=values-dev.yaml" >> $GITHUB_OUTPUT
+          fi
+
+      # Build and Push main app
+      - name: Build and Push main app
+        run: |
+          IMAGE_TAG=main-app-${{ github.sha }}
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./main-app
+          docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
+          echo "MAIN_APP_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+
+      # Build and Push microservice
+      - name: Build and Push microservice
+        run: |
+          IMAGE_TAG=microservice-${{ github.sha }}
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker build -t $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG ./microservice
+          docker push $REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG
+          echo "MICROSERVICE_IMAGE=$REGISTRY/${{ env.APP_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
+
+      # Deploy to EKS
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Helm Deploy Apps
+        run: |
+          # Deploy main app
+          helm upgrade --install main-app ./helm/main-app \
+            --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
+            --create-namespace \
+            -f ./helm/main-app/${{ steps.set-env.outputs.VALUE_FILE }} \
+            --set mainApp.image.tag=main-app-${{ github.sha }}
+
+          # Deploy microservice
+          helm upgrade --install microservice ./helm/microservice \
+            --namespace ${{ steps.set-env.outputs.NAMESPACE }} \
+            --create-namespace \
+            -f ./helm/microservice/${{ steps.set-env.outputs.VALUE_FILE }} \
+            --set microservice.image.tag=microservice-${{ github.sha }}

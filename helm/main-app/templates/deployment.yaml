@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-app
+  labels:
+    app: main-app
+  annotations:
+    # ⚠️ This tells Reloader to watch all secrets referenced by this deployment
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.mainApp.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app: main-app
+  template:
+    metadata:
+      labels:
+        app: main-app
+    spec:
+      containers:
+      - name: nestjs-main-app
+        image: "{{ .Values.mainApp.image.repository }}:{{ .Values.mainApp.image.tag }}"
+        ports:
+        - containerPort: 3000
+        envFrom:
+          - secretRef:
+              name: main-app-env-secret
+        # Liveness: Is the process alive? (If fails, K8s restarts it)
+        livenessProbe:
+          httpGet:
+            path: /hello
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        # Readiness: Is the app ready for traffic? (If fails, K8s stops sending traffic)
+        readinessProbe:
+          httpGet:
+            path: /hello
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3

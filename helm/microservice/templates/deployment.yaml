@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice
+  labels:
+    app: microservice
+  annotations:
+    # ⚠️ This tells Reloader to watch all secrets referenced by this deployment
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.microservice.replicaCount | default 2 }}
+  selector:
+    matchLabels:
+      app: microservice
+  template:
+    metadata:
+      labels:
+        app: microservice
+    spec:
+      containers:
+      - name: nestjs-microservice
+        image: "{{ .Values.microservice.image.repository }}:{{ .Values.microservice.image.tag }}"
+        ports:
+        - containerPort: 3001
+        envFrom:
+          - secretRef:
+              name: microservice-env-secret
+        # Liveness
+        livenessProbe:
+          httpGet:
+            path: /greeting
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        # Readiness
+        readinessProbe:
+          httpGet:
+            path: /greeting
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 10

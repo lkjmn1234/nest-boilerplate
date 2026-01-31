@@ -1,0 +1,17 @@
+namespace: staging
+
+microservice:
+  replicaCount: 1
+  image:
+    repository: "135384223494.dkr.ecr.ap-southeast-1.amazonaws.com/my-app-repo"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
