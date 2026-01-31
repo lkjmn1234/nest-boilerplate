@@ -4,6 +4,9 @@ metadata:
   name: main-app
   labels:
     app: main-app
+  annotations:
+    # ⚠️ This tells Reloader to watch all secrets referenced by this deployment
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.mainApp.replicaCount | default 2 }}
   selector:

@@ -4,6 +4,9 @@ metadata:
   name: microservice
   labels:
     app: microservice
+  annotations:
+    # ⚠️ This tells Reloader to watch all secrets referenced by this deployment
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.microservice.replicaCount | default 2 }}
   selector:
