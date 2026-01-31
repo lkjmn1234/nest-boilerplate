@@ -2,7 +2,11 @@ namespace: dev
 
 microservice:
   replicaCount: 1
-  awsSecretName: "dev/nestjs/apps"
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials"
 
 # Example of dev-specific resource limits
 resources:

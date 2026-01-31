@@ -1,9 +1,15 @@
 namespace: prod
 
 mainApp:
-  replicaCount: 3  # High availability
-  awsSecretName: "prod/nestjs/apps"
+  replicaCount: 3
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    tag: "latest" # Default tag
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials" # Overridden in env values
 
+# ClusterSecretStore name installed in your EKS cluster
+secretStoreName: aws-secretsmanager
 # Production-grade resource limits
 resources:
   limits:

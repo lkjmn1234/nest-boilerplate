@@ -2,7 +2,11 @@ namespace: prod
 
 microservice:
   replicaCount: 3
-  awsSecretName: "prod/nestjs/apps"
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  awsSecretName: "my-app/db-credentials"
 
 # Production-grade resource limits
 resources:
