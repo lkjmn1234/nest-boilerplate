@@ -1,4 +1,4 @@
-namespace: prod
+namespace: staging
 
 mainApp:
   replicaCount: 1
@@ -10,7 +10,6 @@ mainApp:
 
 # ClusterSecretStore name installed in your EKS cluster
 secretStoreName: aws-secretsmanager
-# Production-grade resource limits
 resources:
   limits:
     cpu: 500m

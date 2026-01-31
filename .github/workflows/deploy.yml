@@ -37,8 +37,8 @@ jobs:
         id: set-env
         run: |
           if [[ "${{ github.ref_name }}" == "master" ]]; then
-            echo "NAMESPACE=prod" >> $GITHUB_OUTPUT
-            echo "VALUE_FILE=values-prod.yaml" >> $GITHUB_OUTPUT
+            echo "NAMESPACE=staging" >> $GITHUB_OUTPUT
+            echo "VALUE_FILE=values-staging.yaml" >> $GITHUB_OUTPUT
           else
             echo "NAMESPACE=dev" >> $GITHUB_OUTPUT
             echo "VALUE_FILE=values-dev.yaml" >> $GITHUB_OUTPUT

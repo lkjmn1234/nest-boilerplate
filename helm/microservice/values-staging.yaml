@@ -1,4 +1,4 @@
-namespace: prod
+namespace: staging
 
 microservice:
   replicaCount: 1
@@ -8,7 +8,6 @@ microservice:
     pullPolicy: IfNotPresent
   awsSecretName: "my-app/db-credentials"
 
-# Production-grade resource limits
 resources:
   limits:
     cpu: 500m
