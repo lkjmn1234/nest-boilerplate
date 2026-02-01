@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: microservice
+  annotations:
+    # Essential: Tell the controller to use ALB
+    kubernetes.io/ingress.class: alb
+    
+    # Essential: internet-facing or internal
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    
+    # 'ip' targets pods directly (best performance), 'instance' targets NodePorts
+    alb.ingress.kubernetes.io/target-type: ip
+    
+    # Optional: SSL configuration
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:region:account:certificate/id
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: microservice
+                port:
+                  number: 3001

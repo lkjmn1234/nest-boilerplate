@@ -7,6 +7,6 @@ spec:
     app: main-app
   ports:
     - protocol: TCP
-      port: 80
+      port: 3000
       targetPort: 3000
   type: LoadBalancer # Exposes the app to the internet on EKS
